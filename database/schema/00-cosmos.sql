@@ -9,8 +9,8 @@ CREATE TABLE pre_commit
     validator_address TEXT                        NOT NULL REFERENCES validator (consensus_address),
     height            BIGINT                      NOT NULL,
     timestamp         TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    voting_power      BIGINT                      NOT NULL,
-    proposer_priority BIGINT                      NOT NULL,
+    voting_power      NUMERIC                      NOT NULL,
+    proposer_priority NUMERIC                      NOT NULL,
     UNIQUE (validator_address, timestamp)
 );
 CREATE INDEX pre_commit_validator_address_index ON pre_commit (validator_address);

@@ -13,6 +13,7 @@ import (
 
 	"github.com/forbole/bdjuno/v2/types/config"
 
+	"github.com/CosmWasm/wasmd/x/wasm"
 	"github.com/forbole/bdjuno/v2/database"
 	"github.com/forbole/bdjuno/v2/modules"
 )
@@ -50,6 +51,9 @@ func main() {
 func getBasicManagers() []module.BasicManager {
 	return []module.BasicManager{
 		simapp.ModuleBasics,
+		module.NewBasicManager(
+			wasm.AppModuleBasic{},
+		),
 	}
 }
 

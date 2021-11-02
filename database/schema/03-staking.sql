@@ -14,8 +14,8 @@ CREATE INDEX staking_params_height_index ON staking_params (height);
 CREATE TABLE staking_pool
 (
     one_row_id        BOOLEAN NOT NULL DEFAULT TRUE PRIMARY KEY,
-    bonded_tokens     BIGINT  NOT NULL,
-    not_bonded_tokens BIGINT  NOT NULL,
+    bonded_tokens     NUMERIC NOT NULL,
+    not_bonded_tokens NUMERIC NOT NULL,
     height            BIGINT  NOT NULL,
     CHECK (one_row_id)
 );
@@ -52,16 +52,16 @@ CREATE TABLE validator_commission
 (
     validator_address   TEXT    NOT NULL REFERENCES validator (consensus_address) PRIMARY KEY,
     commission          DECIMAL NOT NULL,
-    min_self_delegation BIGINT  NOT NULL,
+    min_self_delegation NUMERIC NOT NULL,
     height              BIGINT  NOT NULL
 );
 CREATE INDEX validator_commission_height_index ON validator_commission (height);
 
 CREATE TABLE validator_voting_power
 (
-    validator_address TEXT   NOT NULL REFERENCES validator (consensus_address) PRIMARY KEY,
-    voting_power      BIGINT NOT NULL,
-    height            BIGINT NOT NULL REFERENCES block (height)
+    validator_address TEXT    NOT NULL REFERENCES validator (consensus_address) PRIMARY KEY,
+    voting_power      NUMERIC NOT NULL,
+    height            BIGINT  NOT NULL REFERENCES block (height)
 );
 CREATE INDEX validator_voting_power_height_index ON validator_voting_power (height);
 
@@ -107,21 +107,20 @@ WHERE delegator_address = (
     SELECT self_delegate_address
     FROM validator_info
     WHERE validator_info.consensus_address = validator_row.consensus_address
-)
-$$ LANGUAGE sql STABLE;
+) $$ LANGUAGE sql STABLE;
 
 /**
   * This function is used to have a Hasura compute field (https://hasura.io/docs/1.0/graphql/core/schema/computed-fields.html)
   * inside the delegation_history table, so that it's easy to determine whether an entry represents a self delegation or not.
  */
 CREATE FUNCTION is_delegation_self_delegate(delegation_row delegation) RETURNS BOOLEAN AS
-$$
+    $$
 SELECT (
            SELECT self_delegate_address
            FROM validator_info
            WHERE validator_info.consensus_address = delegation_row.validator_address
        ) = delegation_row.delegator_address
-$$ LANGUAGE sql STABLE;
+           $$ LANGUAGE sql STABLE;
 
 /* ---- RE-DELEGATIONS ---- */
 
@@ -131,12 +130,12 @@ $$ LANGUAGE sql STABLE;
  */
 CREATE TABLE redelegation
 (
-    delegator_address     TEXT                        NOT NULL REFERENCES account (address),
-    src_validator_address TEXT                        NOT NULL REFERENCES validator (consensus_address),
-    dst_validator_address TEXT                        NOT NULL REFERENCES validator (consensus_address),
-    amount                COIN                        NOT NULL,
+    delegator_address     TEXT   NOT NULL REFERENCES account (address),
+    src_validator_address TEXT   NOT NULL REFERENCES validator (consensus_address),
+    dst_validator_address TEXT   NOT NULL REFERENCES validator (consensus_address),
+    amount                COIN   NOT NULL,
     completion_time       TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    height                BIGINT                      NOT NULL,
+    height                BIGINT NOT NULL,
     CONSTRAINT redelegation_validator_delegator_unique UNIQUE (delegator_address, src_validator_address,
                                                                dst_validator_address, amount, completion_time)
 );
@@ -152,11 +151,11 @@ CREATE INDEX redelegation_dst_validator_address_index ON redelegation (dst_valid
  */
 CREATE TABLE unbonding_delegation
 (
-    validator_address    TEXT                        NOT NULL REFERENCES validator (consensus_address),
-    delegator_address    TEXT                        NOT NULL REFERENCES account (address),
-    amount               COIN                        NOT NUll,
+    validator_address    TEXT   NOT NULL REFERENCES validator (consensus_address),
+    delegator_address    TEXT   NOT NULL REFERENCES account (address),
+    amount               COIN   NOT NUll,
     completion_timestamp TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    height               BIGINT                      NOT NULL,
+    height               BIGINT NOT NULL,
     CONSTRAINT unbonding_delegation_validator_delegator_unique UNIQUE (delegator_address, validator_address,
                                                                        amount, completion_timestamp)
 );

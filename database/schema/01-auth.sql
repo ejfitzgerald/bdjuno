@@ -7,7 +7,7 @@ CREATE TABLE account
 CREATE TYPE COIN AS
 (
     denom  TEXT,
-    amount TEXT
+    amount NUMERIC
 );
 
 /* ---- AUTH/ VESTING ACCOUNT ---- */
